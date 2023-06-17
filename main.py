@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-import pyautogui #(width=1920, height=1080)
+import pyautogui #width=1920, height=1080
+import dlib
 
 cam = cv2.VideoCapture(0)
 startF = (0,0)
@@ -26,6 +27,9 @@ def main():
     grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    
+    detect = dlib.get_frontal_face_detector()
+    frontal_lst = detect(grey_frame, 1)
     faces = face_cascade.detectMultiScale(grey_frame, 1.3, 4)
     #print("no. of faces: %s" % len(faces))
     roi_grey = None
