@@ -11,7 +11,7 @@ endE1 = (0,0)
 startE2 = (0,0)
 endE2 = (0,0)
 
-
+#hello
 def prtTup(tuple):
     x,y = tuple
     print(f"{x},{y}")
@@ -19,6 +19,12 @@ def prtTup(tuple):
 def mseXY(tuple):
     x,y = tuple
     pyautogui.moveTo(x, y, duration = 1)
+
+def coordTaker(shape, dtype = "int"):
+    coords = np.zeroes((68,2), dtype)
+    for i in range(0, 68):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
+    return coords
 
 def main():
     
@@ -30,6 +36,12 @@ def main():
     
     detect = dlib.get_frontal_face_detector()
     frontal_lst = detect(grey_frame, 1)
+    recognizer = dlib.shape_predictor('shape_68.dat')
+    for (i, frontal) in enumerate(frontal_lst):
+        shape = recognizer(grey_frame, frontal)
+        coords = coordTaker(shape)
+        for(x,y) in coords:
+            cv2.circle(frame, (x,y), 2, (0, 0, 255), -1)
     faces = face_cascade.detectMultiScale(grey_frame, 1.3, 4)
     #print("no. of faces: %s" % len(faces))
     roi_grey = None
