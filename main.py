@@ -21,10 +21,12 @@ def mseXY(tuple):
     pyautogui.moveTo(x, y, duration = 1)
 
 def coordTaker(shape, dtype = "int"):
-    coords = np.zeroes((68,2), dtype)
+    coords = np.zeros((68,2), dtype)
     for i in range(0, 68):
         coords[i] = (shape.part(i).x, shape.part(i).y)
     return coords
+
+
 
 def main():
     
@@ -36,12 +38,37 @@ def main():
     
     detect = dlib.get_frontal_face_detector()
     frontal_lst = detect(grey_frame, 1)
-    recognizer = dlib.shape_predictor('shape_68.dat')
+    recognizer = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
     for (i, frontal) in enumerate(frontal_lst):
         shape = recognizer(grey_frame, frontal)
         coords = coordTaker(shape)
         for(x,y) in coords:
             cv2.circle(frame, (x,y), 2, (0, 0, 255), -1)
+
+    
+
+    cv2.imshow('myeProject', frame)
+        
+
+while True:
+
+    main()
+    
+    key = cv2.waitKey(1)
+    if key == 27:
+        cam.release()
+        cv2.destroyAllWindows()
+        break
+
+
+
+
+
+
+
+
+#------------------------------The Abyss------------------------------
+def locker():
     faces = face_cascade.detectMultiScale(grey_frame, 1.3, 4)
     #print("no. of faces: %s" % len(faces))
     roi_grey = None
@@ -91,24 +118,11 @@ def main():
         #     endE1 = (eyeobj[0] + eyeobj[2], eyeobj[1] + eyeobj[3])
         #     color_eye = (255, 0, 0)
         #     cv2.rectangle(frame, startE1, endE1, color_eye, 2)
+        #cv2.rectangle(frame, startE2, endE2, color_eye, 2)  
+        #mseXY(startE1)    
 
          
     #prtTup(startE1)
     color_face = (0, 255, 0)
     color_eye = (255, 0, 0)
     cv2.rectangle(frame, startF, endF, color_face, 2)
-    
-    #cv2.rectangle(frame, startE2, endE2, color_eye, 2)  
-    #mseXY(startE1)    
-    cv2.imshow('myeProject', frame)
-        
-
-while True:
-
-    main()
-    
-    key = cv2.waitKey(1)
-    if key == 27:
-        cam.release()
-        cv2.destroyAllWindows()
-        break
