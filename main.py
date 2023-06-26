@@ -11,7 +11,9 @@ endE1 = (0,0)
 startE2 = (0,0)
 endE2 = (0,0)
 
-#hello
+leftE = [36, 37, 38, 39, 40, 41]
+rightE = [42, 43, 44, 45, 46, 47]
+
 def prtTup(tuple):
     x,y = tuple
     print(f"{x},{y}")
@@ -26,6 +28,11 @@ def coordTaker(shape, dtype = "int"):
         coords[i] = (shape.part(i).x, shape.part(i).y)
     return coords
 
+def thresholdTool(threshval):
+    check, img = cam.read()
+    grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    retval, imgThresh = cv2.threshold(grey_frame, threshval, 255, cv2.THRESH_BINARY)
+    cv2.imshow("Threshold test", imgThresh)
 
 
 def main():
@@ -35,6 +42,29 @@ def main():
     grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+    faces = face_cascade.detectMultiScale(grey_frame, 1.3, 4)
+    #print("no. of faces: %s" % len(faces))
+    roi_grey = None
+    for (x, y, w, h) in faces:
+        global startF, endF
+        startF = (x, y)
+        endF = (x+w, y+h)
+        roi_grey = grey_frame[y:y+h, x:x+w]
+        roi_color = frame[y:y+h, x:x+w]
+    
+    eyes = eye_cascade.detectMultiScale(grey_frame, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE)
+    print("no. of eyes %s" % len(eyes))
+    if(len(eyes) >= 2):
+        global startE1, endE1, startE2, endE2
+        eyes = eyes[:2]
+
+    for (x, y, w, h) in eyes:
+        startE1 = (x, y)
+        endE1 = (x + w, y + h)
+        prtTup(startE1)
+        color_eye = (255, 0, 0)
+        cv2.rectangle(frame, startE1, endE1, color_eye, 2)
     
     detect = dlib.get_frontal_face_detector()
     frontal_lst = detect(grey_frame, 1)
@@ -44,16 +74,19 @@ def main():
         coords = coordTaker(shape)
         for(x,y) in coords:
             cv2.circle(frame, (x,y), 2, (0, 0, 255), -1)
-
     
-
+    
+    color_face = (0, 255, 0)
+    color_eye = (255, 0, 0)
+    cv2.rectangle(frame, startF, endF, color_face, 2)
     cv2.imshow('myeProject', frame)
+
         
 
 while True:
 
     main()
-    
+
     key = cv2.waitKey(1)
     if key == 27:
         cam.release()
