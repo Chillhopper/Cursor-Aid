@@ -72,7 +72,7 @@ def main():
         roi_color = frame[y:y+h, x:x+w]
     
     eyes = eye_cascade.detectMultiScale(grey_frame, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE)
-    print("no. of eyes %s" % len(eyes))
+    #print("no. of eyes %s" % len(eyes))
     if(len(eyes) >= 2):
         global startE1, endE1, startE2, endE2
         eyes = eyes[:2]
@@ -86,6 +86,7 @@ def main():
     
     copyframe = frame[startE1[1]:endE1[1], startE1[0]:endE1[0]]
     eyePts = blob_process(copyframe, detector)
+    print(eyePts)
     cv2.drawKeypoints(copyframe, eyePts, copyframe, (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     
 
