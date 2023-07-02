@@ -41,6 +41,11 @@ def thresholdTool(threshval = 42):
     imgThresh = cut_eyebrows(imgThresh)
     cv2.imshow("Threshold test", imgThresh)
 
+def blob_process(img, detector):
+    gray_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, img = cv2.threshold(gray_frame, 42, 255, cv2.THRESH_BINARY)
+    keypoints = detector.detect(img)
+    return keypoints
 
 def main():
     
@@ -53,6 +58,12 @@ def main():
     faces = face_cascade.detectMultiScale(grey_frame, 1.3, 4)
     #print("no. of faces: %s" % len(faces))
     roi_grey = None
+
+    detector_params = cv2.SimpleBlobDetector_Params()
+    detector_params.filterByArea = True
+    detector_params.maxArea = 1500
+    detector = cv2.SimpleBlobDetector_create(detector_params)
+
     for (x, y, w, h) in faces:
         global startF, endF
         startF = (x, y)
@@ -74,6 +85,8 @@ def main():
         cv2.rectangle(frame, startE1, endE1, color_eye, 2)
     
     copyframe = frame[startE1[1]:endE1[1], startE1[0]:endE1[0]]
+    eyePts = blob_process(copyframe, detector)
+    cv2.drawKeypoints(copyframe, eyePts, copyframe, (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     
 
     # detect = dlib.get_frontal_face_detector()
