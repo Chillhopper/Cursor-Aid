@@ -28,10 +28,17 @@ def coordTaker(shape, dtype = "int"):
         coords[i] = (shape.part(i).x, shape.part(i).y)
     return coords
 
-def thresholdTool(threshval):
+def cut_eyebrows(img):
+    height, width = img.shape[:2]
+    eyebrow_h = int(height / 4)
+    img = img[eyebrow_h:height, 0:width]  # cut eyebrows out (15 px)
+    return img
+
+def thresholdTool(threshval = 42):
     check, img = cam.read()
     grey_frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     retval, imgThresh = cv2.threshold(grey_frame, threshval, 255, cv2.THRESH_BINARY)
+    imgThresh = cut_eyebrows(imgThresh)
     cv2.imshow("Threshold test", imgThresh)
 
 
@@ -66,20 +73,23 @@ def main():
         color_eye = (255, 0, 0)
         cv2.rectangle(frame, startE1, endE1, color_eye, 2)
     
-    detect = dlib.get_frontal_face_detector()
-    frontal_lst = detect(grey_frame, 1)
-    recognizer = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
-    for (i, frontal) in enumerate(frontal_lst):
-        shape = recognizer(grey_frame, frontal)
-        coords = coordTaker(shape)
-        for(x,y) in coords:
-            cv2.circle(frame, (x,y), 2, (0, 0, 255), -1)
+    copyframe = frame[startE1[1]:endE1[1], startE1[0]:endE1[0]]
+    
+
+    # detect = dlib.get_frontal_face_detector()
+    # frontal_lst = detect(grey_frame, 1)
+    # recognizer = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
+    # for (i, frontal) in enumerate(frontal_lst):
+    #     shape = recognizer(grey_frame, frontal)
+    #     coords = coordTaker(shape)
+    #     for(x,y) in coords:
+    #         cv2.circle(frame, (x,y), 2, (0, 0, 255), -1)
     
     
     color_face = (0, 255, 0)
     color_eye = (255, 0, 0)
     cv2.rectangle(frame, startF, endF, color_face, 2)
-    cv2.imshow('myeProject', frame)
+    cv2.imshow('myeProject', copyframe)
 
         
 
