@@ -3,100 +3,46 @@ import numpy as np
 import pyautogui #width=1920, height=1080
 import dlib
 
-cam = cv2.VideoCapture(0)
-startF = (0,0)
-endF = (0,0)
-startE1 = (0,0)
-endE1 = (0,0)
-startE2 = (0,0)
-endE2 = (0,0)
+# multiple cascades: https://github.com/Itseez/opencv/tree/master/data/haarcascades
 
+#https://github.com/Itseez/opencv/blob/master/data/haarcascades/haarcascade_frontalface_default.xml
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+#https://github.com/Itseez/opencv/blob/master/data/haarcascades/haarcascade_eye.xml
+eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
 
-def prtTup(tuple):
-    x,y = tuple
-    print(f"{x},{y}")
+cap = cv2.VideoCapture(0)
 
-def mseXY(tuple):
-    x,y = tuple
-    pyautogui.moveTo(x, y, duration = 1)
+def move_mouse(eye_coordinates, screen_width, screen_height):
+    eye_x, eye_y, eye_w, eye_h = eye_coordinates
+    # Normalize eye coordinates to screen width and height
+    x = int(eye_x + eye_w / 2)
+    y = int(eye_y + eye_h / 2)
+    normalized_x = int((x / cap.get(3)) * screen_width)
+    normalized_y = int((y / cap.get(4)) * screen_height)
+    pyautogui.moveTo(normalized_x, normalized_y)
 
 def main():
-    
-    check, frame = cam.read()
-    #cv2.imshow('vedio', frame)
-    grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-    
-    detect = dlib.get_frontal_face_detector()
-    frontal_lst = detect(grey_frame, 1)
-    faces = face_cascade.detectMultiScale(grey_frame, 1.3, 4)
-    #print("no. of faces: %s" % len(faces))
-    roi_grey = None
-    for (x, y, w, h) in faces:
-        global startF, endF
-        startF = (x, y)
-        endF = (x+w, y+h)
-        roi_grey = grey_frame[y:y+h, x:x+w]
-        roi_color = frame[y:y+h, x:x+w]
+    ret, img = cap.read()
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
+    for (x,y,w,h) in faces:
+        cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+        roi_gray = gray[y:y+h, x:x+w]
+        roi_color = img[y:y+h, x:x+w]
+        
+        eyes = eye_cascade.detectMultiScale(roi_gray)
+        for (ex,ey,ew,eh) in eyes:
+            cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+            move_mouse((ex, ey, ew, eh), screen_width=1920, screen_height=1080)
 
-    eyes = eye_cascade.detectMultiScale(grey_frame, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE)
-    print("no. of eyes %s" % len(eyes))
-    if(len(eyes) >= 2):
-        global startE1, endE1, startE2, endE2
-        eyes = eyes[:2]
-        
-        # eyeobj1 = eyes[1]
-        # x1 = eyeobj1[0]
-        # y1 = eyeobj1[1]
-        # w1 = eyeobj1[2]
-        # h1 = eyeobj1[3]
-        # startE1 = (x1,y1)
-        # endE1 = (x1+w1, y1+h1)
-        # eyeobj2 = eyes[1]
-        # x2 = eyeobj2[0]
-        # y2 = eyeobj2[1]
-        # w2 = eyeobj2[2]
-        # h2 = eyeobj2[3]
-        # startE2 = (x2, y2)
-        # endE2 = (x2+w2, y2+h2)
-        # color_eye = (255, 0, 0)
-        # cv2.rectangle(frame, startE1, endE1, color_eye, 2)
-        # cv2.rectangle(frame, startE2, endE2, color_eye, 2)
-        
-        
-        for x, y, w, h in eyes:
-            startE1 = (x, y)
-            endE1 = (x + w, y + h)
-            prtTup(startE1)
-            color_eye = (255, 0, 0)
-            cv2.rectangle(frame, startE1, endE1, color_eye, 2)
+    cv2.imshow('img',img)
 
-        # for eyeobj in eyes:
-        #     global startE, endE
-        #     startE1 = (eyeobj[0], eyeobj[1])
-        #     endE1 = (eyeobj[0] + eyeobj[2], eyeobj[1] + eyeobj[3])
-        #     color_eye = (255, 0, 0)
-        #     cv2.rectangle(frame, startE1, endE1, color_eye, 2)
-
-         
-    #prtTup(startE1)
-    color_face = (0, 255, 0)
-    color_eye = (255, 0, 0)
-    cv2.rectangle(frame, startF, endF, color_face, 2)
-    
-    #cv2.rectangle(frame, startE2, endE2, color_eye, 2)  
-    #mseXY(startE1)    
-    cv2.imshow('myeProject', frame)
-        
 
 while True:
-
     main()
-    
     key = cv2.waitKey(1)
     if key == 27:
-        cam.release()
+        cap.release()
         cv2.destroyAllWindows()
         break
